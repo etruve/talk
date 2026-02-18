@@ -12,7 +12,7 @@ export default function Navbar() {
     <div className="border-b bg-background h-header">
       <nav className="container mx-auto px-4 flex justify-between items-center h-full gap-4">
         <Link href="/" className="text-xl font-bold">
-          Supachat
+          Talk
         </Link>
 
         {isLoading || user == null ? (
