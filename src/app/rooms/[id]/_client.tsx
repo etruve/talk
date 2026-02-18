@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Message } from "@/services/supabase/actions/messages"
 import { createClient } from "@/services/supabase/client"
 import { RealtimeChannel } from "@supabase/supabase-js"
-import { useEffect, useState } from "react"
+   import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 export function RoomClient({
   room,
@@ -25,10 +25,11 @@ export function RoomClient({
   }
   messages: Message[]
 }) {
-  const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
-    roomId: room.id,
-    userId: user.id,
-  })
+  const { connectedUsers, messages: realtimeMessages, broadcastMessage } =
+    useRealtimeChat({
+      roomId: room.id,
+      userId: user.id,
+    })
   const {
     loadMoreMessages,
     messages: oldMessages,
@@ -42,10 +43,39 @@ export function RoomClient({
     (Message & { status: "pending" | "error" | "success" })[]
   >([])
 
-  const visibleMessages = oldMessages.concat(
-    realtimeMessages,
-    sentMessages.filter(m => !realtimeMessages.find(rm => rm.id === m.id))
-  )
+  // Merge and deduplicate all messages, sorted by created_at
+  const visibleMessages = useMemo(() => {
+    // Combine all message sources
+    const allMessages = [
+      ...oldMessages,
+      ...realtimeMessages,
+      ...sentMessages.filter(m => m.status === "pending" || m.status === "success"),
+    ]
+
+    // Deduplicate by id, keeping the most recent version
+    const messageMap = new Map<string, Message>()
+    for (const msg of allMessages) {
+      const existing = messageMap.get(msg.id)
+      if (!existing || new Date(msg.created_at) > new Date(existing.created_at)) {
+        messageMap.set(msg.id, msg)
+      }
+    }
+
+    // Sort by created_at descending (newest first, since we're using flex-col-reverse)
+    const sorted = Array.from(messageMap.values()).sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+
+    console.log("[UI] Merged messages:", {
+      oldMessages: oldMessages.length,
+      realtimeMessages: realtimeMessages.length,
+      sentMessages: sentMessages.length,
+      totalUnique: sorted.length,
+      messageIds: sorted.map(m => m.id).slice(0, 5),
+    })
+
+    return sorted
+  }, [oldMessages, realtimeMessages, sentMessages])
 
   return (
     <div className="container mx-auto h-screen-with-header border border-y-0 flex flex-col">
@@ -81,9 +111,14 @@ export function RoomClient({
               </Button>
             </div>
           )}
+          {visibleMessages.length === 0 && status === "idle" && (
+            <p className="text-center text-sm text-muted-foreground py-4">
+              No messages yet. Start the conversation!
+            </p>
+          )}
           {visibleMessages.map((message, index) => (
             <ChatMessage
-              key={message.id}
+              key={`${message.id}-${message.created_at}`}
               {...message}
               ref={index === 0 && status === "idle" ? triggerQueryRef : null}
             />
@@ -109,6 +144,7 @@ export function RoomClient({
           ])
         }}
         onSuccessfulSend={message => {
+          broadcastMessage(message)
           setSentMessages(prev =>
             prev.map(m =>
               m.id === message.id ? { ...message, status: "success" } : m
@@ -134,13 +170,51 @@ function useRealtimeChat({
 }) {
   const [connectedUsers, setConnectedUsers] = useState(1)
   const [messages, setMessages] = useState<Message[]>([])
+  const channelRef = useRef<RealtimeChannel | null>(null)
+  const subscribedRef = useRef(false)
+  const pendingBroadcastsRef = useRef<
+    Array<{
+      id: string
+      text: string
+      created_at: string
+      author_id: string
+      author_name: string
+      author_image_url: string | null
+    }>
+  >([])
+
+  const broadcastMessage = useCallback((message: Message) => {
+    const payload = {
+      id: message.id,
+      text: message.text,
+      created_at: message.created_at,
+      author_id: message.author_id,
+      author_name: message.author.name,
+      author_image_url: message.author.image_url,
+    }
+
+    const channel = channelRef.current
+    if (!channel || !subscribedRef.current) {
+      pendingBroadcastsRef.current.push(payload)
+      return
+    }
+
+    channel.send({ type: "broadcast", event: "INSERT", payload })
+  }, [])
 
   useEffect(() => {
     const supabase = createClient()
     let newChannel: RealtimeChannel
     let cancel = false
 
-    supabase.realtime.setAuth().then(() => {
+    setConnectedUsers(1)
+    setMessages([])
+    subscribedRef.current = false
+    pendingBroadcastsRef.current = []
+
+    ;(async () => {
+      const { data } = await supabase.auth.getSession()
+      await supabase.realtime.setAuth(data.session?.access_token ?? "")
       if (cancel) return
 
       newChannel = supabase.channel(`room:${roomId}:messages`, {
@@ -151,43 +225,146 @@ function useRealtimeChat({
           },
         },
       })
+      channelRef.current = newChannel
 
       newChannel
         .on("presence", { event: "sync" }, () => {
           setConnectedUsers(Object.keys(newChannel.presenceState()).length)
         })
-        .on("broadcast", { event: "INSERT" }, payload => {
-          const record = payload.payload
-          setMessages(prevMessages => [
-            ...prevMessages,
-            {
+        .on("broadcast", { event: "INSERT" }, async payload => {
+          console.log("[Realtime] Received broadcast INSERT:", payload)
+          const record = payload.payload as Partial<{
+            id: string
+            text: string
+            created_at: string
+            author_id: string
+            author_name: string
+            author_image_url: string | null
+          }>
+
+          if (!record.id || !record.text || !record.created_at || !record.author_id) {
+            console.warn("[Realtime] Invalid broadcast payload:", record)
+            return
+          }
+
+          let author:
+            | { name: string; image_url: string | null }
+            | null
+            | undefined = null
+
+          if (record.author_name != null) {
+            author = { name: record.author_name, image_url: record.author_image_url ?? null }
+          } else {
+            const res = await supabase
+              .from("user_profile")
+              .select("name, image_url")
+              .eq("id", record.author_id)
+              .single()
+            author = res.data
+          }
+
+          if (cancel) return
+          
+          const newMessage: Message = {
+            id: record.id,
+            text: record.text,
+            created_at: record.created_at,
+            author_id: record.author_id,
+            author: {
+              name: author?.name ?? "Unknown",
+              image_url: author?.image_url ?? null,
+            },
+          }
+          
+          console.log("[Realtime] Adding broadcast message to state:", record.id, newMessage)
+          setMessages(prevMessages => {
+            if (prevMessages.some(m => m.id === record.id)) {
+              console.log("[Realtime] Broadcast message already exists, skipping:", record.id)
+              return prevMessages
+            }
+            console.log("[Realtime] Adding new broadcast message, total:", prevMessages.length + 1)
+            return [...prevMessages, newMessage]
+          })
+        })
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "message",
+            filter: `chat_room_id=eq.${roomId}`,
+          },
+          async payload => {
+            console.log("[Realtime] Received postgres_changes INSERT:", payload)
+            const record = payload.new as {
+              id: string
+              text: string
+              created_at: string
+              author_id: string
+            }
+
+            const { data: author } = await supabase
+              .from("user_profile")
+              .select("name, image_url")
+              .eq("id", record.author_id)
+              .single()
+
+            if (cancel) return
+            
+            const newMessage: Message = {
               id: record.id,
               text: record.text,
               created_at: record.created_at,
               author_id: record.author_id,
               author: {
-                name: record.author_name,
-                image_url: record.author_image_url,
+                name: author?.name ?? "Unknown",
+                image_url: author?.image_url ?? null,
               },
-            },
-          ])
+            }
+            
+            console.log("[Realtime] Adding message to state:", record.id, newMessage)
+            setMessages(prevMessages => {
+              // Check if message already exists
+              if (prevMessages.some(m => m.id === record.id)) {
+                console.log("[Realtime] Message already exists in realtimeMessages, skipping:", record.id)
+                return prevMessages
+              }
+              
+              console.log("[Realtime] Adding new message to realtimeMessages, total:", prevMessages.length + 1)
+              // Add to the end (newest messages)
+              return [...prevMessages, newMessage]
+            })
+          }
+        )
+        .subscribe((status, err) => {
+          console.log(`[Realtime] Channel subscription status: ${status}`, err || "")
+          
+          if (status === "SUBSCRIBED") {
+            subscribedRef.current = true
+            const pending = pendingBroadcastsRef.current
+            pendingBroadcastsRef.current = []
+            pending.forEach(payload => {
+              newChannel.send({ type: "broadcast", event: "INSERT", payload })
+            })
+            newChannel.track({ userId })
+            console.log(`[Realtime] Successfully subscribed to room:${roomId}:messages`)
+          } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            console.error(`[Realtime] Channel error: ${status}`, err)
+          }
         })
-        .subscribe(status => {
-          if (status !== "SUBSCRIBED") return
-
-          newChannel.track({ userId })
-        })
-    })
+    })()
 
     return () => {
       cancel = true
       if (!newChannel) return
       newChannel.untrack()
       newChannel.unsubscribe()
+      supabase.removeChannel(newChannel)
+      if (channelRef.current === newChannel) channelRef.current = null
     }
   }, [roomId, userId])
 
-  return { connectedUsers, messages }
+  return { connectedUsers, messages, broadcastMessage }
 }
 
 const LIMIT = 25

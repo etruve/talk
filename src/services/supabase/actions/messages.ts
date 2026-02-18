@@ -57,7 +57,14 @@ export async function sendMessage(data: {
     .single()
 
   if (error) {
-    return { error: true, message: "Failed to send message" }
+    console.error("Message insert error:", JSON.stringify(error, null, 2))
+    // Supabase errors have different structure - try to extract useful info
+    const errorMsg = 
+      error.message || 
+      error.details || 
+      error.hint || 
+      JSON.stringify(error)
+    return { error: true, message: `Failed to send message: ${errorMsg}` }
   }
 
   return { error: false, message }
