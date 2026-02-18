@@ -46,7 +46,7 @@ export function ChatMessage({
       <div className="grow space-y-0.5">
         <div className="flex items-baseline gap-2">
           <span className="text-sm font-semibold">{author.name}</span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground" suppressHydrationWarning >
             {DATE_FORMATTER.format(new Date(created_at))}
           </span>
         </div>
