@@ -61,7 +61,7 @@ async function getMessages(roomId: string) {
     )
     .eq("chat_room_id", roomId)
     .order("created_at", { ascending: false })
-    .limit(10)
+    .limit(100)
 
   if (error) return []
   return data

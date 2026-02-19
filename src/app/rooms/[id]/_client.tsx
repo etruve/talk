@@ -36,7 +36,7 @@ export function RoomClient({
     triggerQueryRef,
   } = useInfiniteScrollChat({
     roomId: room.id,
-    startingMessages: messages.toReversed(),
+    startingMessages: messages,
   })
   const [sentMessages, setSentMessages] = useState<
     (Message & { status: "pending" | "error" | "success" })[]
@@ -48,48 +48,23 @@ export function RoomClient({
   )
 
   return (
-    <div className="container mx-auto h-screen-with-header border border-y-0 flex flex-col">
-      <div className="flex items-center justify-between gap-2 p-4">
-        <div className="border-b">
-          <h1 className="text-2xl font-bold">{room.name}</h1>
-          <p className="text-muted-foreground text-sm">
-            {connectedUsers} {connectedUsers === 1 ? "user" : "users"} online
-          </p>
-        </div>
-        <InviteUserModal roomId={room.id} />
+    <div className="h-screen
+     container mx-auto h-screen-with-header flex flex-row min-h-0">
+
+    <div className="w-1/2 border-r flex flex-col items-center justify-center text-white ">
+      <div className="w-14 h-14 bg-white/20 rounded-full mb-6 flex items-center justify-center">
+        🎤
       </div>
-      <div
-        className="grow overflow-y-auto flex flex-col-reverse"
+      <h2 className="text-xl font-bold mb-2">John Doe</h2>
+      <div className="text-xl m-8 opacity-90">  Talker text here Talker text here Talker text here Talker text hereTalker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here</div>
+    </div>
+    
+      <div className="m-16 grow overflow-y-auto flex flex-col-reverse "
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "var(--border) transparent",
         }}
       >
-        <div>
-          {status === "loading" && (
-            <p className="text-center text-sm text-muted-foreground py-2">
-              Loading more messages...
-            </p>
-          )}
-          {status === "error" && (
-            <div className="text-center">
-              <p className="text-sm text-destructive py-2">
-                Error loading messages.
-              </p>
-              <Button onClick={loadMoreMessages} variant="outline">
-                Retry
-              </Button>
-            </div>
-          )}
-          {visibleMessages.map((message, index) => (
-            <ChatMessage
-              key={message.id}
-              {...message}
-              ref={index === 0 && status === "idle" ? triggerQueryRef : null}
-            />
-          ))}
-        </div>
-      </div>
       <ChatInput
         roomId={room.id}
         onSend={message => {
@@ -120,7 +95,35 @@ export function RoomClient({
             prev.map(m => (m.id === id ? { ...m, status: "error" } : m))
           )
         }}
-      />
+      />    
+        <div>
+          {status === "loading" && (
+            <p className="text-center text-sm text-muted-foreground py-2">
+              Loading more messages...
+            </p>
+          )}
+          {status === "error" && (
+            <div className="text-center">
+              <p className="text-sm text-destructive py-2">
+                Error loading messages.
+              </p>
+              <Button onClick={loadMoreMessages} variant="outline">
+                Retry
+              </Button>
+            </div>
+          )}
+          {visibleMessages.map((message, index) => (
+            <ChatMessage
+              key={message.id}
+              {...message}
+              ref={index === 0 && status === "idle" ? triggerQueryRef : null}
+            />
+          ))}
+        </div>      
+      </div>
+   
+
+
     </div>
   )
 }
@@ -223,7 +226,7 @@ function useInfiniteScrollChat({
       return
     }
 
-    setMessages(prev => [...data.toReversed(), ...prev])
+    setMessages(prev => [...data, ...prev])
     setStatus(data.length < LIMIT ? "done" : "idle")
   }
 
