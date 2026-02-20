@@ -56,9 +56,9 @@ export function RoomClient({
       <div className="w-14 h-14 bg-white/20 rounded-full mb-6 flex items-center justify-center">
         🎤
       </div>
-        <div className="relative w-87.5 h-75">
+        <div className="relative w-87.5 h-64">
         {/* Back Card (Text) - Behind */}
-        <Card className="absolute inset-0 z-10 shadow-lg bg-linear-to-br from-gray-50 to-white">
+        <Card className="absolute inset-0 z-10 shadow-lg bg-gradient-to-br from-gray-50 to-white">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-gray-800">Hidden Text</CardTitle>
           </CardHeader>
@@ -68,13 +68,13 @@ export function RoomClient({
         </Card>
 
         {/* Front Card (Video) - On Top */}
-        <Card 
-          className={`absolute inset-x-0 top-0 z-20 shadow-2xl transition-all duration-500 ease-out hover:shadow-3xl ${
-            isRevealed ? '-translate-y-24 rounded-b-none' : 'cursor-pointer'
+        <Card
+          className={`p-0 absolute inset-x-0 top-0 z-20 shadow-2xl transition-all duration-500 ease-out hover:shadow-3xl ${
+            isRevealed ? '-translate-y-60 rounded-b-none' : 'cursor-pointer'
           }`}
           onClick={() => setIsRevealed(!isRevealed)}
         >
-          <CardContent className="p-0">
+          <CardContent className="p-0" >
             <video
               className="w-full h-64 object-cover rounded-lg"
               controls
