@@ -48,8 +48,7 @@ export function RoomClient({
   )
 
   return (
-    <div className="h-screen
-     container mx-auto h-screen-with-header flex flex-row min-h-0">
+    <div className="h-screen container mx-auto h-screen-with-header flex flex-row min-h-0">
 
     <div className="w-1/2 border-r flex flex-col items-center justify-center text-white ">
       <div className="w-14 h-14 bg-white/20 rounded-full mb-6 flex items-center justify-center">
@@ -59,7 +58,7 @@ export function RoomClient({
       <div className="text-xl m-8 opacity-90">  Talker text here Talker text here Talker text here Talker text hereTalker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here</div>
     </div>
     
-      <div className="m-16 grow overflow-y-auto flex flex-col-reverse "
+      <div className="m-16 grow overflow-y-auto flex flex-col"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "var(--border) transparent",
