@@ -45,7 +45,7 @@ export function RoomClient({
   >([])
 
   const visibleMessages = oldMessages.concat(
-    realtimeMessages,
+    realtimeMessages, 
     sentMessages.filter(m => !realtimeMessages.find(rm => rm.id === m.id))
   )
 
@@ -85,10 +85,10 @@ export function RoomClient({
           </CardContent>
         </Card>
       </div>
-      <div className="text-xl m-8 opacity-90">  Talker text here Talker text here Talker text here Talker text hereTalker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here Talker text here</div>
+      <div className="text-xl m-8 opacity-90">Look who's talking</div>
     </div>
     
-      <div className="m-16 grow overflow-y-auto flex flex-col"
+      <div className="m-16 grow overflow-y-auto flex flex-col-reverse"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "var(--border) transparent",
@@ -131,6 +131,14 @@ export function RoomClient({
               Loading more messages...
             </p>
           )}
+
+          {visibleMessages.map((message, index) => (
+            <ChatMessage
+              key={message.id}
+              {...message}
+              ref={index === visibleMessages.length - 1 && status === "idle" ? triggerQueryRef : null}
+            />
+          ))}
           {status === "error" && (
             <div className="text-center">
               <p className="text-sm text-destructive py-2">
@@ -141,13 +149,6 @@ export function RoomClient({
               </Button>
             </div>
           )}
-          {visibleMessages.map((message, index) => (
-            <ChatMessage
-              key={message.id}
-              {...message}
-              ref={index === 0 && status === "idle" ? triggerQueryRef : null}
-            />
-          ))}
         </div>      
       </div>
    
@@ -191,7 +192,6 @@ function useRealtimeChat({
         .on("broadcast", { event: "INSERT" }, payload => {
           const record = payload.payload
           setMessages(prevMessages => [
-            ...prevMessages,
             {
               id: record.id,
               text: record.text,
@@ -202,6 +202,7 @@ function useRealtimeChat({
                 image_url: record.author_image_url,
               },
             },
+          ...prevMessages,
           ])
         })
         .subscribe(status => {
