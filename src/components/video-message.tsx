@@ -6,15 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 type Props = {
   roomId: string
 }
-
+          
 export function VideoMessage({
   roomId,
   }: Props) {
   const [message, setMessage] = useState("")
   const [isRevealed, setIsRevealed] = useState(false)
   return (
-    <div className="w-1/2 border-r flex flex-col items-center justify-center text-white ">
-      <div className="w-14 h-14 bg-white/20 rounded-full mb-6 flex items-center justify-center">
+
+
+    <div className="w-full h-screen flex flex-col items-center justify-top gap-8 p-10">
+      <div className="w-20 h-20 bg-white/20 rounded-full mb-6 flex items-center justify-center">
         🎤
       </div>
         <div className="relative w-87.5 h-64">

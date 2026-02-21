@@ -26,60 +26,65 @@ export function RoomClient({
   }
   messages: Message[]
 }) {
-  const [isRevealed, setIsRevealed] = useState(false)
-  const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
+const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
     roomId: room.id,
     userId: user.id,
   })
- const {
-  loadMoreMessages,
-  messages: rawMessages,  // renamed
-  status,
-  triggerQueryRef,
-} = useInfiniteScrollChat({
-  roomId: room.id,
-  startingMessages: messages,
-})
-const visibleMessages = useMemo(() => {
-  const map = new Map();
-  rawMessages.forEach(msg => map.set(msg.id, msg));
-  return Array.from(map.values());
-}, [rawMessages])
+  const {
+    loadMoreMessages,
+    messages: oldMessages,
+    status,
+    triggerQueryRef,
+  } = useInfiniteScrollChat({
+    roomId: room.id,
+    startingMessages: messages.toReversed(),
+  })
   const [sentMessages, setSentMessages] = useState<
     (Message & { status: "pending" | "error" | "success" })[]
   >([])
 
-
+  const visibleMessages = oldMessages.concat(
+    realtimeMessages,
+    sentMessages.filter(m => !realtimeMessages.find(rm => rm.id === m.id))
+  )
 
   return (
-    <div className="h-screen container mx-auto h-screen-with-header flex flex-row min-h-0">
+    <div className="w-full h-screen container mx-auto h-screen-with-header border-x flex flex-row min-h-0">
 
         <div>
+
+        <div className="border m-6">
+
+          <div className="m-6"> 
+          <h1 className="text-2xl font-bold">{room.name}</h1>
+          <p className="text-muted-foreground text-sm">
+            {connectedUsers} {connectedUsers === 1 ? "user" : "users"} online
+          </p>
+          <div className="mt-6"><InviteUserModal roomId={room.id} />
+          </div>
+          </div>
+
+        
+      </div>
           {status === "loading" && (
             <p className="text-center text-sm text-muted-foreground py-2">
               Loading more messages...
             </p>
           )}
-
             <VideoMessage
               roomId={room.id}
               
             />
-
           {status === "error" && (
             <div className="text-center">
               <p className="text-sm text-destructive py-2">
                 Error loading messages.
               </p>
-              <Button onClick={loadMoreMessages} variant="outline">
-                Retry
-              </Button>
             </div>
           )}
-        </div>   
-
+        </div>
     
-      <div className="m-16 grow overflow-y-auto flex flex-col"
+      <div className="m-4 grow overflow-y-auto flex flex-col"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "var(--border) transparent",
@@ -122,8 +127,8 @@ const visibleMessages = useMemo(() => {
               Loading more messages...
             </p>
           )}
-          {/* .toReversed()*/}
-          {visibleMessages.map((message, index) => (
+          {/* */}
+          {visibleMessages.toReversed().map((message, index) => (
             <ChatMessage
               key={message.id}
               {...message}
@@ -183,6 +188,7 @@ function useRealtimeChat({
         .on("broadcast", { event: "INSERT" }, payload => {
           const record = payload.payload
           setMessages(prevMessages => [
+            ...prevMessages,
             {
               id: record.id,
               text: record.text,
@@ -193,7 +199,6 @@ function useRealtimeChat({
                 image_url: record.author_image_url,
               },
             },
-          ...prevMessages,
           ])
         })
         .subscribe(status => {
