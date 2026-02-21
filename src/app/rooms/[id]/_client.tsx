@@ -51,7 +51,6 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
 
   return (
   <div className="w-full h-screen container mx-auto h-screen-with-header border-x flex flex-row min-h-0">
-
   <div className="flex flex-col">
           {status === "loading" && (
             <p className="text-center text-sm text-muted-foreground py-2">
@@ -78,10 +77,27 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
             <div className="mt-6"><InviteUserModal roomId={room.id} /></div>
         </div>  
       </div>
-
   </div>
-    
-      <div className="m-4 grow overflow-y-auto flex flex-col"
+    <div className="m-4 grow overflow-y-auto flex flex-col"
+  style={{
+    scrollbarWidth: "thin",
+    scrollbarColor: "var(--border) transparent",
+  }}
+>
+    {status === "loading" && (
+      <p className="text-center text-sm text-muted-foreground py-2">
+        Loading more messages...
+      </p>
+    )}
+    {/* */}
+    {visibleMessages.map((message, index) => (
+      <NotesMessage
+        text={message.text}
+        
+      /> 
+    ))}
+  </div>      
+  <div className="m-4 grow overflow-y-auto flex flex-col"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "var(--border) transparent",
@@ -146,26 +162,7 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
         </div>    
       </div>
    
-      <div className="m-4 grow overflow-y-auto flex flex-col"
-        style={{
-          scrollbarWidth: "thin",
-          scrollbarColor: "var(--border) transparent",
-        }}
-      >
-      
-          {status === "loading" && (
-            <p className="text-center text-sm text-muted-foreground py-2">
-              Loading more messages...
-            </p>
-          )}
-          {/* */}
-          {visibleMessages.map((message, index) => (
-            <NotesMessage
-              text={message.text}
-               
-            /> 
-          ))}
-        </div>    
+
 
     </div>
   ) 
