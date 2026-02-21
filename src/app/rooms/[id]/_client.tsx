@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Message } from "@/services/supabase/actions/messages"
 import { createClient } from "@/services/supabase/client"
 import { RealtimeChannel } from "@supabase/supabase-js"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function RoomClient({
@@ -31,23 +31,24 @@ export function RoomClient({
     roomId: room.id,
     userId: user.id,
   })
-  const {
-    loadMoreMessages,
-    messages: oldMessages,
-    status,
-    triggerQueryRef,
-  } = useInfiniteScrollChat({
-    roomId: room.id,
-    startingMessages: messages,
-  })
+ const {
+  loadMoreMessages,
+  messages: rawMessages,  // renamed
+  status,
+  triggerQueryRef,
+} = useInfiniteScrollChat({
+  roomId: room.id,
+  startingMessages: messages,
+})
   const [sentMessages, setSentMessages] = useState<
     (Message & { status: "pending" | "error" | "success" })[]
   >([])
 
-  const visibleMessages = oldMessages.concat(
-    realtimeMessages, 
-    sentMessages.filter(m => !realtimeMessages.find(rm => rm.id === m.id))
-  )
+const visibleMessages = useMemo(() => {
+  const map = new Map();
+  rawMessages.forEach(msg => map.set(msg.id, msg));
+  return Array.from(map.values());
+}, [rawMessages])
 
   return (
     <div className="h-screen container mx-auto h-screen-with-header flex flex-row min-h-0">
@@ -58,7 +59,7 @@ export function RoomClient({
       </div>
         <div className="relative w-87.5 h-64">
         {/* Back Card (Text) - Behind */}
-        <Card className="absolute inset-0 z-10 shadow-lg bg-gradient-to-br from-gray-50 to-white">
+        <Card className="absolute inset-0 z-10 shadow-lg bg-linear-to-br from-gray-50 to-white">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-gray-800">Hidden Text</CardTitle>
           </CardHeader>
@@ -88,7 +89,7 @@ export function RoomClient({
       <div className="text-xl m-8 opacity-90">Look who's talking</div>
     </div>
     
-      <div className="m-16 grow overflow-y-auto flex flex-col-reverse"
+      <div className="m-16 grow overflow-y-auto flex flex-col"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "var(--border) transparent",
@@ -131,12 +132,12 @@ export function RoomClient({
               Loading more messages...
             </p>
           )}
-
-          {visibleMessages.map((message, index) => (
+          {/* .toReversed()*/}
+          {visibleMessages.toReversed().map((message, index) => (
             <ChatMessage
               key={message.id}
               {...message}
-              ref={index === visibleMessages.length - 1 && status === "idle" ? triggerQueryRef : null}
+              ref={index === 0 && status === "idle" ? triggerQueryRef : null}
             />
           ))}
           {status === "error" && (
@@ -155,7 +156,7 @@ export function RoomClient({
 
 
     </div>
-  )
+  ) 
 }
 
 function useRealtimeChat({
