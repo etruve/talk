@@ -39,7 +39,7 @@ export function ChatMessage({
           />
         ) : (
           <div className="size-10 rounded-full flex items-center justify-center border bg-muted text-muted-foreground overflow-hidden">
-            <User2Icon className="size-[30px] mt-2.5" />
+            <User2Icon className="size-7.5 mt-2.5" />
           </div>
         )}
       </div>
