@@ -9,6 +9,7 @@ import { createClient } from "@/services/supabase/client"
 import { RealtimeChannel } from "@supabase/supabase-js"
 import { useEffect, useMemo, useState } from "react"
 import { VideoMessage } from "@/components/video-message"
+import { NotesMessage } from "@/components/notes-message"
 
 export function RoomClient({
   room,
@@ -49,23 +50,9 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
   )
 
   return (
-    <div className="w-full h-screen container mx-auto h-screen-with-header border-x flex flex-row min-h-0">
+  <div className="w-full h-screen container mx-auto h-screen-with-header border-x flex flex-row min-h-0">
 
-        <div>
-
-        <div className="border m-6">
-
-          <div className="m-6"> 
-          <h1 className="text-2xl font-bold">{room.name}</h1>
-          <p className="text-muted-foreground text-sm">
-            {connectedUsers} {connectedUsers === 1 ? "user" : "users"} online
-          </p>
-          <div className="mt-6"><InviteUserModal roomId={room.id} />
-          </div>
-          </div>
-
-        
-      </div>
+  <div className="flex flex-col">
           {status === "loading" && (
             <p className="text-center text-sm text-muted-foreground py-2">
               Loading more messages...
@@ -78,11 +65,21 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
           {status === "error" && (
             <div className="text-center">
               <p className="text-sm text-destructive py-2">
-                Error loading messages.
+                Error Video loading.
               </p>
             </div>
           )}
-        </div>
+        <div className="flex border m-6">
+          <div className="m-6"> 
+          <h1 className="text-2xl font-bold">{room.name}</h1>
+            <p className="text-muted-foreground text-sm">
+              {connectedUsers} {connectedUsers === 1 ? "user" : "users"} online
+            </p>
+            <div className="mt-6"><InviteUserModal roomId={room.id} /></div>
+        </div>  
+      </div>
+
+  </div>
     
       <div className="m-4 grow overflow-y-auto flex flex-col"
         style={{
@@ -135,6 +132,7 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
               ref={index === 0 && status === "idle" ? triggerQueryRef : null}
             />
           ))}
+          
           {status === "error" && (
             <div className="text-center">
               <p className="text-sm text-destructive py-2">
@@ -145,10 +143,29 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
               </Button>
             </div>
           )}
-        </div>      
+        </div>    
       </div>
    
-
+      <div className="m-4 grow overflow-y-auto flex flex-col"
+        style={{
+          scrollbarWidth: "thin",
+          scrollbarColor: "var(--border) transparent",
+        }}
+      >
+      
+          {status === "loading" && (
+            <p className="text-center text-sm text-muted-foreground py-2">
+              Loading more messages...
+            </p>
+          )}
+          {/* */}
+          {visibleMessages.map((message, index) => (
+            <NotesMessage
+              text={message.text}
+               
+            /> 
+          ))}
+        </div>    
 
     </div>
   ) 

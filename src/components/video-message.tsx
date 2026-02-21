@@ -14,11 +14,8 @@ export function VideoMessage({
   const [isRevealed, setIsRevealed] = useState(false)
   return (
 
+    <div className="w-full h-screen flex flex-col items-center justify-center gap-4 p-6">
 
-    <div className="w-full h-screen flex flex-col items-center justify-top gap-8 p-10">
-      <div className="w-20 h-20 bg-white/20 rounded-full mb-6 flex items-center justify-center">
-        🎤
-      </div>
         <div className="relative w-87.5 h-64">
         {/* Back Card (Text) - Behind */}
         <Card className="absolute inset-0 z-10 shadow-lg bg-linear-to-br from-gray-50 to-white">
@@ -48,7 +45,10 @@ export function VideoMessage({
           </CardContent>
         </Card>
       </div>
-      <div className="text-xl m-8 opacity-90">Me talking</div>
+      <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
+        🎤
+      </div>
+      <div className="text-xl m-2 opacity-90">Me talking</div>
     </div>
 
   )
