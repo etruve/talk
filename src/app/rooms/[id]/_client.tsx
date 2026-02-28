@@ -90,8 +90,9 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
       </p>
     )}
     {/* */}
-    {visibleMessages.map((message, index) => (
+    {visibleMessages.map((message) => (
       <NotesMessage
+        key={message.id}
         text={message.text}
         
       /> 

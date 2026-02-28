@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig = {
+    experimental: {
+    optimizeCss: false  // Disables aggressive CSS chunking
+  },
   images: {
     remotePatterns: [
       {
