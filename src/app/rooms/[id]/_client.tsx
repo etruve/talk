@@ -189,7 +189,7 @@ function useRealtimeChat({
 
       newChannel = supabase.channel(`room:${roomId}:messages`, {
         config: {
-          private: true,
+          //private: true,
           presence: {
             key: userId,
           },
@@ -216,7 +216,9 @@ function useRealtimeChat({
             },
           ])
         })
+        
         .subscribe(status => {
+          //console.log('NB STATUS:', status); // This requires JWT + RLS policy!
           if (status !== "SUBSCRIBED") return
 
           newChannel.track({ userId })
@@ -234,7 +236,7 @@ function useRealtimeChat({
   return { connectedUsers, messages }
 }
 
-const LIMIT = 25
+const LIMIT = 50
 function useInfiniteScrollChat({
   startingMessages,
   roomId,
