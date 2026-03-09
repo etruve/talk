@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { UserPlusIcon } from "lucide-react"
-import { addUserToRoom } from "@/services/supabase/actions/rooms"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Field, FieldError, FieldGroup, FieldLabel } from "./ui/field"
@@ -20,9 +19,10 @@ import { Controller, useForm } from "react-hook-form"
 import { LoadingSwap } from "./ui/loading-swap"
 import z from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { addInviteeToRoom } from "@/services/supabase/actions/invitees"
 
 const formSchema = z.object({
-  userId: z.string().min(1).trim(),
+  email: z.string().min(1).trim(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -34,12 +34,12 @@ export function InviteUserModal({ roomId }: { roomId: string }) {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      userId: "",
+      email: "",
     },
   })
 
   async function onSubmit(data: FormData) {
-    const res = await addUserToRoom({ roomId, userId: data.userId })
+    const res = await addInviteeToRoom({ roomId, email: data.email})
 
     if (res.error) {
       toast.error(res.message)
@@ -61,21 +61,20 @@ export function InviteUserModal({ roomId }: { roomId: string }) {
         <DialogHeader>
           <DialogTitle>Invite User to Room</DialogTitle>
           <DialogDescription>
-            Enter the user ID of the person you want to invite to this chat
-            room.
+            Enter the user email you want to invite to this chat room.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
             <Controller
-              name="userId"
+              name="email"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="user-id">User ID</FieldLabel>
+                  <FieldLabel htmlFor="user-email">User Email</FieldLabel>
                   <Input
                     {...field}
-                    id="user-id"
+                    id="user-email"
                     aria-invalid={fieldState.invalid}
                   />
                   {fieldState.invalid && (
