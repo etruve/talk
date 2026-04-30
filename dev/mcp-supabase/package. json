@@ -1,1 +1,17 @@
-
+{
+  "name": "mcp-supabase",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest"
+  },
+  "devDependencies": {
+    "ts-node": "latest",
+    "typescript": "latest"
+  }
+}
