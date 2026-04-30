@@ -2,43 +2,62 @@ import { cn } from "@/lib/utils"
 import { Message } from "@/services/supabase/actions/messages"
 import { Ref, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
+import { createClient } from "@/services/supabase/client"
 
 type Props = {
   roomId: string
 }
-          
+
+const supabase = createClient();
+
+// This synchronously generates the public URL for the video
+const { data:otherData } = supabase.storage
+  .from("cat")
+  .getPublicUrl("Moment.mp4");
+
+const otherUrl = otherData.publicUrl;
+
+// This synchronously generates the public URL for the video
+const { data:catData } = supabase.storage
+  .from("cat")
+  .getPublicUrl("cat.mp4");
+
+const catUrl = catData.publicUrl;
+
 export function VideoCoveredCard(){
   const [message, setMessage] = useState("")
   const [isRevealed, setIsRevealed] = useState(false)
-  return (
-  <>
-        <Card className="absolute inset-0 z-10 shadow-lg bg-linear-to-br from-gray-50 to-white">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-gray-800">Hidden Text</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0 text-gray-600">
-            Detailed description revealed when video moves up.
-          </CardContent>
-        </Card>
+return (
+  <div className="w-full h-screen flex items-center justify-center p-6">
+    <div className="relative w-full max-w-md h-96">
 
-        <Card
-          className={`p-0 absolute inset-x-0 top-0 z-20 shadow-2xl transition-all duration-500 ease-out hover:shadow-3xl ${
-            isRevealed ? '-translate-y-60 rounded-b-none' : 'cursor-pointer'
-          }`}
-          onClick={() => setIsRevealed(!isRevealed)}
-        >
-          <CardContent className="p-0" >
-            <video
-              className="w-full h-64 object-cover rounded-lg"
-              controls
-              src="/your-video.mp4"
-            >
-              Your browser doesn't support video.
-            </video>
-          </CardContent>
-        </Card>
-</>
-  )
+
+      <Card
+        className={`absolute inset-x-0 top-0 z-20 p-0 shadow-2xl transition-all duration-500 ease-out ${
+          isRevealed ? "-translate-y-10 rounded-b-none" : "cursor-pointer"
+        }`}
+        onClick={() => setIsRevealed(!isRevealed)}
+      >
+        <CardContent className="p-0">
+        <video
+            className="w-full h-64 object-cover rounded-lg"
+            controls
+            src={catUrl}
+          >
+            Your browser doesn't support video.
+          </video>
+          <video
+            className="w-full h-64 object-cover rounded-lg"
+            controls
+            src={otherUrl}
+          >
+            Your browser doesn't support video.
+          </video>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
 }
 
 
