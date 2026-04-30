@@ -9,15 +9,6 @@ type Props = {
 }
 
 const supabase = createClient();
-const { data:sound1Data } = supabase.storage
-  .from("cat")
-  .getPublicUrl("Roots.mp3");
-const sound1Url = sound1Data.publicUrl;
-
-const { data:sound2Data } = supabase.storage
-  .from("cat")
-  .getPublicUrl("Right.mp3");
-const sound2Url = sound2Data.publicUrl;
 
 const { data:otherData } = supabase.storage
   .from("cat")
@@ -28,6 +19,16 @@ const { data:catData } = supabase.storage
   .from("cat")
   .getPublicUrl("cat.mp4");
 const catUrl = catData.publicUrl;
+
+const { data:sound1Data } = supabase.storage
+  .from("cat")
+  .getPublicUrl("Roots.mp3");
+const sound1Url = sound1Data.publicUrl;
+
+const { data:sound2Data } = supabase.storage
+  .from("cat")
+  .getPublicUrl("Right.mp3");
+const sound2Url = sound2Data.publicUrl;
 
 export function VideoCoveredCard(){
   const [message, setMessage] = useState("")
