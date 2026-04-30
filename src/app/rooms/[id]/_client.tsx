@@ -55,14 +55,6 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
   <div className="m-2 grow overflow-y-auto flex flex-col items-center justify-center">
             <VideoCoveredCard 
             />
-
-          {status === "error" && (
-            <div className="text-center">
-              <p className="text-sm text-destructive py-2">
-                Error Video loading.
-              </p>
-            </div>
-          )}
         <div className="flex border m-2 w-full">
           <div className="m-6"> 
           <h1 className="text-2xl font-bold">{room.name}</h1>
