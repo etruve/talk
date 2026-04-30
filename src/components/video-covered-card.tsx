@@ -11,18 +11,18 @@ type Props = {
 const supabase = createClient();
 
 // This synchronously generates the public URL for the video
-const { data:otherData } = supabase.storage
+const { data:soundData } = supabase.storage
   .from("cat")
   .getPublicUrl("Moment.mp4");
 
-const otherUrl = otherData.publicUrl;
+const soundUrl = soundData.publicUrl;
 
 // This synchronously generates the public URL for the video
-const { data:catData } = supabase.storage
+const { data:sound1Data } = supabase.storage
   .from("cat")
-  .getPublicUrl("cat.mp4");
+  .getPublicUrl("Roots.mp3");
 
-const catUrl = catData.publicUrl;
+const sound1Url = sound1Data.publicUrl;
 
 const { data: otherData } = supabase.storage
   .from("cat")
