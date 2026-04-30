@@ -10,6 +10,7 @@ import { RealtimeChannel } from "@supabase/supabase-js"
 import { useEffect, useMemo, useState } from "react"
 import { VideoMessage } from "@/components/video-message"
 import { NotesMessage } from "@/components/notes-message"
+import { VideoCoveredCard } from "@/components/video-covered-card"
 
 export function RoomClient({
   room,
@@ -51,16 +52,10 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
 
   return (
   <div className="w-full h-screen container mx-auto h-screen-with-header border-x flex flex-row min-h-0">
-  <div className="flex flex-col">
-          {status === "loading" && (
-            <p className="text-center text-sm text-muted-foreground py-2">
-              Loading more messages...
-            </p>
-          )}
-            <VideoMessage
-              roomId={room.id}
-              
+  <div className="m-2 grow overflow-y-auto flex flex-col items-center justify-center">
+            <VideoCoveredCard 
             />
+
           {status === "error" && (
             <div className="text-center">
               <p className="text-sm text-destructive py-2">
@@ -68,7 +63,7 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
               </p>
             </div>
           )}
-        <div className="flex border m-6">
+        <div className="flex border m-2 w-full">
           <div className="m-6"> 
           <h1 className="text-2xl font-bold">{room.name}</h1>
             <p className="text-muted-foreground text-sm">
@@ -78,12 +73,13 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
         </div>  
       </div>
   </div>
-    <div className="m-4 grow overflow-y-auto flex flex-col"
+    <div className="m-2 grow overflow-y-auto flex flex-col"
   style={{
     scrollbarWidth: "thin",
     scrollbarColor: "var(--border) transparent",
   }}
 >
+
     {status === "loading" && (
       <p className="text-center text-sm text-muted-foreground py-2">
         Loading more messages...
@@ -98,7 +94,7 @@ const { connectedUsers, messages: realtimeMessages } = useRealtimeChat({
       /> 
     ))}
   </div>      
-  <div className="m-4 grow overflow-y-auto flex flex-col"
+  <div className="m-2 grow overflow-y-auto flex flex-col"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "var(--border) transparent",

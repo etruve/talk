@@ -14,7 +14,7 @@ export function VideoMessage({
 
     <div className="w-full h-screen flex flex-col items-center justify-center gap-4 p-6">
 
-      <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
+          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
         🎤
       </div>
       <div className="text-xl m-2 opacity-90">Me talking</div>
